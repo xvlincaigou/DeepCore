@@ -3,12 +3,19 @@ import torch.nn.functional as F
 from torch import set_grad_enabled, flatten, Tensor
 from .nets_utils import EmbeddingRecorder
 from torchvision.models import resnet
-
+import torch.utils.model_zoo as model_zoo
 
 # Acknowledgement to
 # https://github.com/kuangliu/pytorch-cifar,
 # https://github.com/BIGBALLON/CIFAR-ZOO,
 
+model_urls = {
+    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
+    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
+    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
+    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
+    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
+}
 
 def conv3x3(in_planes, out_planes, stride=1):
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
@@ -165,8 +172,9 @@ def ResNet(arch: str, channel: int, num_classes: int, im_size, record_embedding:
                                  record_embedding=record_embedding, no_grad=no_grad)
         else:
             raise ValueError("Model architecture not found.")
-        from torch.hub import load_state_dict_from_url
-        state_dict = load_state_dict_from_url(resnet.model_urls[arch], progress=True)
+
+        ## 这个api可能有问题
+        state_dict = model_zoo.load_url(model_urls[arch], progress=True)
         net.load_state_dict(state_dict)
 
         if channel != 3:
